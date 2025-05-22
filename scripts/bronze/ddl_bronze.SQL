@@ -1,140 +1,66 @@
--- LOAD SOURCES INTO TABLES -- 
--- EXEC bronze.load_bronze
 
-CREATE OR ALTER PROCEDURE bronze.load_bronze AS
-BEGIN
-	DECLARE @start_time DATETIME, @end_time DATETIME, @batch_start_time DATETIME, @batch_end_time DATETIME;
-	BEGIN TRY
-		SET @batch_start_time = GETDATE();
+USE DataWarehouse;
 
-		PRINT '==============================================================';
-		PRINT 'Loading Bronze Layer';
-		PRINT '==============================================================';
+IF OBJECT_ID ('bronze.crm_cust_info' , 'u') IS NOT NULL
+    DROP TABLE bronze.crm_cust_info;
+CREATE TABLE bronze.crm_cust_info (
+	cst_id INT,
+    cst_key VARCHAR(50),
+    cst_firstname VARCHAR(50),
+    cst_lastname VARCHAR(50),
+    cst_material_status VARCHAR(50),
+    cst_gndr VARCHAR(50),
+    cst_create_date DATE
+);
 
-		PRINT '--------------------------------------------------------------';
-		PRINT 'Loading CRM Tables';
-		PRINT '--------------------------------------------------------------';
 
-		-- CUSTOMER INFO TABLE --
-		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: bronze.crm_cust_info';
-		TRUNCATE TABLE bronze.crm_cust_info; -- So every time the code is run it emties the table in order to upload it again (updates it as well).
-		
-		PRINT '>> Inserting Data Into: bronze.crm_cust_info';
-		BULK INSERT bronze.crm_cust_info
-		FROM 'C:\Users\joaqu\Documents\1 SQL\datasets\source_crm\cust_info.csv'
-		WITH (
-			FIRSTROW = 2,
-			FIELDTERMINATOR = ',',
-			TABLOCK
-		);
-		SET @end_time = GETDATE();
-		PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS VARCHAR) + ' seconds.';
-		PRINT '';
+IF OBJECT_ID ('bronze.crm_prod_info' , 'u') IS NOT NULL
+    DROP TABLE bronze.crm_prod_info; 
+CREATE TABLE bronze.crm_prod_info (
+	prd_id INT,
+    prd_key VARCHAR(50),
+    prd_nm VARCHAR(50),
+    prd_cost INT,
+    prd_line VARCHAR(50),
+    prd_start_dt DATETIME,
+    prd_end_dt DATETIME
+);
 
-		-- PRODUCT INFO TABLE --
-		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: bronze.crm_prod_info';
-		TRUNCATE TABLE bronze.crm_prod_info;
-		
-		PRINT '>> Inserting Data Into: bronze.crm_prod_info';
-		BULK INSERT bronze.crm_prod_info
-		FROM 'C:\Users\joaqu\Documents\1 SQL\datasets\source_crm\prd_info.csv'
-		WITH (
-			FIRSTROW = 2,
-			FIELDTERMINATOR = ',',
-			TABLOCK
-		);
-		SET @end_time = GETDATE();
-		PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS VARCHAR) + ' seconds.';
-		PRINT '';
 
-		-- SALES DETAILS TABLE --
-		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: bronze.crm_sales_details';
-		TRUNCATE TABLE bronze.crm_sales_details;
-		
-		PRINT '>> Inserting Data Into: bronze.crm_sales_details';
-		BULK INSERT bronze.crm_sales_details
-		FROM 'C:\Users\joaqu\Documents\1 SQL\datasets\source_crm\sales_details.csv'
-		WITH (
-			FIRSTROW = 2,
-			FIELDTERMINATOR = ',',
-			TABLOCK
-		);
-		SET @end_time = GETDATE();
-		PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS VARCHAR) + ' seconds.';
-		PRINT '';
+IF OBJECT_ID ('bronze.crm_sales_details' , 'u') IS NOT NULL
+    DROP TABLE bronze.crm_sales_details;
+CREATE TABLE bronze.crm_sales_details (
+	sls_ord_num VARCHAR(50),
+    sls_prd_key VARCHAR(50),
+    sls_cust_id INT,
+    sls_order_dt INT,
+    sls_ship_dt INT,
+    sls_due_dt INT,
+    sls_sales INT,
+    sls_quantity INT,
+    sls_price INT
+);
 
-		PRINT '--------------------------------------------------------------';
-		PRINT 'Loading CRM Table';
-		PRINT '--------------------------------------------------------------';
+IF OBJECT_ID ('bronze.erp_cust_az12' , 'u') IS NOT NULL
+    DROP TABLE bronze.erp_cust_az12;
+CREATE TABLE bronze.erp_cust_az12 (
+	cust_cid VARCHAR(50),
+    cust_bdate DATE,
+    cust_gen VARCHAR(50)
+);
 
-		-- CUSTOMER ERP TABLE --
-		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: bronze.erp_cust_az12';
-		TRUNCATE TABLE bronze.erp_cust_az12;
-		
-		PRINT '>> Inserting Data Into: bronze.erp_cust_az12';
-		BULK INSERT bronze.erp_cust_az12
-		FROM 'C:\Users\joaqu\Documents\1 SQL\datasets\source_erp\cust_az12.csv'
-		WITH (
-			FIRSTROW = 2,
-			FIELDTERMINATOR = ',',
-			TABLOCK
-		);
-		SET @end_time = GETDATE();
-		PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS VARCHAR) + ' seconds.';
-		PRINT '';
+IF OBJECT_ID ('bronze.erp_loc_a101' , 'u') IS NOT NULL
+    DROP TABLE bronze.erp_loc_a101;
+CREATE TABLE bronze.erp_loc_a101 (
+	loc_cid VARCHAR(50),
+    loc_cntry VARCHAR(50)
+);
 
-		-- LOCATION ERP TABLE --
-		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: bronze.erp_loc_a101';
-		TRUNCATE TABLE bronze.erp_loc_a101;
-		
-		PRINT '>> Inserting Data Into: bronze.erp_loc_a101';
-		BULK INSERT bronze.erp_loc_a101
-		FROM 'C:\Users\joaqu\Documents\1 SQL\datasets\source_erp\loc_a101.csv'
-		WITH (
-			FIRSTROW = 2,
-			FIELDTERMINATOR = ',',
-			TABLOCK
-		);
-		SET @end_time = GETDATE();
-		PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS VARCHAR) + ' seconds.';
-		PRINT '';
-
-		-- PX CAT ERP TABLE --
-		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: bronze.erp_px_cat_g1v2';
-		TRUNCATE TABLE bronze.erp_px_cat_g1v2;
-		
-		PRINT '>> Inserting Data Into: bronze.erp_px_cat_g1v2';
-		BULK INSERT bronze.erp_px_cat_g1v2
-		FROM 'C:\Users\joaqu\Documents\1 SQL\datasets\source_erp\px_cat_g1v2.csv'
-		WITH (
-			FIRSTROW = 2,
-			FIELDTERMINATOR = ',',
-			TABLOCK
-		);
-		SET @end_time = GETDATE();
-		PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS VARCHAR) + ' seconds.';
-		PRINT '';
-
-		SET @batch_end_time = GETDATE();
-		PRINT '==================================================='
-		PRINT 'Bronze Layer Loaded Succesfully!'
-		PRINT '>> Batch Load Duration: ' + CAST(DATEDIFF(second, @batch_start_time, @batch_end_time) AS VARCHAR) + ' seconds.';
-		PRINT '==================================================='
-	END TRY
-
-	BEGIN CATCH
-		PRINT '==================================================='
-		PRINT 'ERROR OCCURED DURING LOADING BRONZE LAYER';
-		PRINT 'Error Message: ' + ERROR_MESSAGE();
-		PRINT 'Error Message: ' + CAST (ERROR_NUMBER() AS NVARCHAR);
-		PRINT 'Error Message: ' + CAST (ERROR_STATE() AS NVARCHAR);
-		PRINT '==================================================='
-	END CATCH
-
-END
+IF OBJECT_ID ('bronze.erp_px_cat_g1v2' , 'u') IS NOT NULL
+    DROP TABLE bronze.erp_px_cat_g1v2;
+CREATE TABLE bronze.erp_px_cat_g1v2 (
+	px_id VARCHAR(50),
+    px_cat VARCHAR(50),
+    px_subcat VARCHAR(50),
+    px_maint VARCHAR(50)
+);
